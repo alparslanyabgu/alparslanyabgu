@@ -10,24 +10,35 @@ import {
   Settings, 
   LogOut,
   Menu,
+  Search,
+  RefreshCw,
   Eye,
   Trash2,
-  Filter,
-  RefreshCw,
-  MessageCircle
+  MessageCircle,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TulparLogo } from '@/components/TulparLogo';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 export default function AdminOrdersPage() {
   const router = useRouter();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [settings, setSettings] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
@@ -36,6 +47,7 @@ export default function AdminOrdersPage() {
       return;
     }
     fetchOrders();
+    fetchSettings();
   }, []);
 
   const fetchOrders = async () => {
@@ -51,12 +63,22 @@ export default function AdminOrdersPage() {
     }
   };
 
-  const updateStatus = async (orderId, status) => {
+  const fetchSettings = async () => {
+    try {
+      const res = await fetch('/api/settings');
+      const data = await res.json();
+      setSettings(data);
+    } catch (err) {
+      console.error('Ayarlar yüklenemedi:', err);
+    }
+  };
+
+  const updateOrderStatus = async (orderId, newStatus) => {
     try {
       await fetch(`/api/orders/${orderId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status })
+        body: JSON.stringify({ status: newStatus })
       });
       fetchOrders();
     } catch (err) {
@@ -65,7 +87,7 @@ export default function AdminOrdersPage() {
   };
 
   const deleteOrder = async (orderId) => {
-    if (!confirm('Bu siparişi silmek istediğinize emin misiniz?')) return;
+    if (!confirm('Bu siparişi silmek istediğinizden emin misiniz?')) return;
     try {
       await fetch(`/api/orders/${orderId}`, { method: 'DELETE' });
       fetchOrders();
@@ -81,8 +103,25 @@ export default function AdminOrdersPage() {
     router.push('/admin');
   };
 
-  const filteredOrders = filter === 'all' ? orders : orders.filter(o => o.status === filter);
-  const stats = { new: orders.filter(o => o.status === 'new').length };
+  const openWhatsApp = (order) => {
+    if (!settings?.whatsappNumber) return;
+    const message = `Merhaba ${order.customerName}, Tulpar Kurye siparişiniz hakkında bilgi vermek istiyoruz.`;
+    window.open(`https://wa.me/${settings.whatsappNumber}?text=${encodeURIComponent(message)}`, '_blank');
+  };
+
+  const filteredOrders = orders.filter(order => {
+    const matchesStatus = filterStatus === 'all' || order.status === filterStatus;
+    const matchesSearch = !searchTerm || 
+      order.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.customerPhone?.includes(searchTerm);
+    return matchesStatus && matchesSearch;
+  });
+
+  const stats = {
+    new: orders.filter(o => o.status === 'new').length,
+    processing: orders.filter(o => o.status === 'processing').length,
+    completed: orders.filter(o => o.status === 'completed').length,
+  };
 
   return (
     <div className="min-h-screen bg-tulpar-bg">
@@ -106,7 +145,9 @@ export default function AdminOrdersPage() {
             <Link href="/admin/orders" className="flex items-center gap-3 px-3 py-2 rounded-lg bg-tulpar-section text-tulpar-primary font-medium">
               <ShoppingCart className="w-5 h-5" />
               Siparişler
-              {stats.new > 0 && <span className="ml-auto bg-tulpar-primary text-white text-xs px-2 py-0.5 rounded-full">{stats.new}</span>}
+              {stats.new > 0 && (
+                <span className="ml-auto bg-tulpar-primary text-white text-xs px-2 py-0.5 rounded-full">{stats.new}</span>
+              )}
             </Link>
             <Link href="/admin/pricing" className="flex items-center gap-3 px-3 py-2 rounded-lg text-tulpar-muted hover:bg-tulpar-section hover:text-tulpar-text transition-colors">
               <DollarSign className="w-5 h-5" />
@@ -126,7 +167,9 @@ export default function AdminOrdersPage() {
         </div>
       </aside>
 
-      {sidebarOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />}
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
+      )}
 
       <div className="lg:ml-64">
         <header className="sticky top-0 z-30 bg-white border-b border-tulpar-border px-4 py-3">
@@ -144,144 +187,200 @@ export default function AdminOrdersPage() {
 
         <main className="p-6">
           {/* Filters */}
-          <div className="flex flex-wrap gap-4 mb-6">
-            <Select value={filter} onValueChange={setFilter}>
-              <SelectTrigger className="w-40 bg-white border-tulpar-border">
-                <Filter className="w-4 h-4 mr-2" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-white border-tulpar-border">
-                <SelectItem value="all">Tümü ({orders.length})</SelectItem>
-                <SelectItem value="new">Yeni ({orders.filter(o => o.status === 'new').length})</SelectItem>
-                <SelectItem value="processing">İşlemde ({orders.filter(o => o.status === 'processing').length})</SelectItem>
-                <SelectItem value="completed">Tamamlandı ({orders.filter(o => o.status === 'completed').length})</SelectItem>
-                <SelectItem value="cancelled">İptal ({orders.filter(o => o.status === 'cancelled').length})</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <Card className="bg-white border-tulpar-border mb-6">
+            <CardContent className="p-4">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tulpar-muted" />
+                  <Input
+                    placeholder="Müşteri adı veya telefon ara..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 bg-white border-tulpar-border"
+                  />
+                </div>
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger className="w-full sm:w-48 bg-white border-tulpar-border">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white border-tulpar-border">
+                    <SelectItem value="all">Tüm Siparişler</SelectItem>
+                    <SelectItem value="new">Yeni ({stats.new})</SelectItem>
+                    <SelectItem value="processing">İşlemde ({stats.processing})</SelectItem>
+                    <SelectItem value="completed">Tamamlandı ({stats.completed})</SelectItem>
+                    <SelectItem value="cancelled">İptal</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Orders List */}
-            <div className="lg:col-span-2">
-              <Card className="bg-white border-tulpar-border">
-                <CardContent className="p-0">
-                  {loading ? (
-                    <p className="text-tulpar-muted text-center py-12">Yükleniyor...</p>
-                  ) : filteredOrders.length === 0 ? (
-                    <p className="text-tulpar-muted text-center py-12">Sipariş bulunamadı</p>
-                  ) : (
-                    <div className="divide-y divide-tulpar-border">
-                      {filteredOrders.map((order) => (
-                        <div 
-                          key={order.id} 
-                          onClick={() => setSelectedOrder(order)}
-                          className={`p-4 cursor-pointer hover:bg-tulpar-section transition-colors ${selectedOrder?.id === order.id ? 'bg-tulpar-section' : ''}`}
-                        >
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <p className="font-medium text-tulpar-text">{order.customerName || 'Misafir'}</p>
-                              <p className="text-sm text-tulpar-muted">{order.customerPhone || '-'}</p>
-                            </div>
-                            <span className={`text-xs px-2 py-1 rounded-full ${
-                              order.status === 'new' ? 'bg-yellow-100 text-yellow-700' :
-                              order.status === 'processing' ? 'bg-orange-100 text-orange-700' :
-                              order.status === 'completed' ? 'bg-green-100 text-green-700' :
-                              'bg-red-100 text-red-700'
-                            }`}>
-                              {order.status === 'new' ? 'Yeni' :
-                               order.status === 'processing' ? 'İşlemde' :
-                               order.status === 'completed' ? 'Tamamlandı' : 'İptal'}
-                            </span>
-                          </div>
-                          <div className="mt-2 flex items-center gap-4 text-sm">
-                            <span className="text-tulpar-muted">Bölge: {order.pickupZone} → {order.dropZone}</span>
-                            <span className="text-tulpar-primary font-medium">{order.total?.toFixed(2)} ₺</span>
-                          </div>
-                          <p className="text-xs text-tulpar-muted mt-1">
-                            {new Date(order.createdAt).toLocaleString('tr-TR')}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Order Detail */}
-            <div>
-              {selectedOrder ? (
-                <Card className="bg-white border-tulpar-border sticky top-20">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-tulpar-text text-base">Sipariş Detayı</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <p className="text-xs text-tulpar-muted">Müşteri</p>
-                      <p className="text-tulpar-text font-medium">{selectedOrder.customerName || '-'}</p>
-                      <p className="text-tulpar-muted text-sm">{selectedOrder.customerPhone || '-'}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-tulpar-muted">Alım Adresi</p>
-                      <p className="text-tulpar-text text-sm">{selectedOrder.pickupAddress || '-'}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-tulpar-muted">Teslim Adresi</p>
-                      <p className="text-tulpar-text text-sm">{selectedOrder.dropAddress || '-'}</p>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-xs text-tulpar-muted">Bölge</p>
-                        <p className="text-tulpar-text text-sm">{selectedOrder.pickupZone} → {selectedOrder.dropZone}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-tulpar-muted">Tutar</p>
-                        <p className="text-tulpar-primary font-semibold">{selectedOrder.total?.toFixed(2)} ₺</p>
-                      </div>
-                    </div>
-                    <div>
-                      <p className="text-xs text-tulpar-muted">Not</p>
-                      <p className="text-tulpar-text text-sm">{selectedOrder.notes || '-'}</p>
-                    </div>
-                    
-                    <div className="pt-4 border-t border-tulpar-border space-y-2">
-                      <p className="text-xs text-tulpar-muted">Durumu Güncelle</p>
-                      <div className="grid grid-cols-2 gap-2">
-                        <Button size="sm" variant="outline" onClick={() => updateStatus(selectedOrder.id, 'new')} className="text-xs">
-                          Yeni
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => updateStatus(selectedOrder.id, 'processing')} className="text-xs">
-                          İşlemde
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => updateStatus(selectedOrder.id, 'completed')} className="text-xs bg-green-50 text-green-700 border-green-200">
-                          Tamamlandı
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => updateStatus(selectedOrder.id, 'cancelled')} className="text-xs bg-red-50 text-red-700 border-red-200">
-                          İptal
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" onClick={() => deleteOrder(selectedOrder.id)} className="flex-1 text-red-500 border-red-200 hover:bg-red-50">
-                        <Trash2 className="w-4 h-4 mr-1" />
-                        Sil
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+          {/* Orders Table */}
+          <Card className="bg-white border-tulpar-border">
+            <CardContent className="p-0">
+              {loading ? (
+                <p className="text-tulpar-muted text-center py-12">Yükleniyor...</p>
+              ) : filteredOrders.length === 0 ? (
+                <p className="text-tulpar-muted text-center py-12">Sipariş bulunamadı</p>
               ) : (
-                <Card className="bg-white border-tulpar-border">
-                  <CardContent className="p-8 text-center">
-                    <Eye className="w-12 h-12 text-tulpar-muted mx-auto mb-3" />
-                    <p className="text-tulpar-muted">Detay görmek için bir sipariş seçin</p>
-                  </CardContent>
-                </Card>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-tulpar-section border-b border-tulpar-border">
+                        <th className="text-left py-3 px-4 text-tulpar-muted text-sm font-medium">Müşteri</th>
+                        <th className="text-left py-3 px-4 text-tulpar-muted text-sm font-medium">Bölge</th>
+                        <th className="text-left py-3 px-4 text-tulpar-muted text-sm font-medium">Tutar</th>
+                        <th className="text-left py-3 px-4 text-tulpar-muted text-sm font-medium">Durum</th>
+                        <th className="text-left py-3 px-4 text-tulpar-muted text-sm font-medium">Tarih</th>
+                        <th className="text-left py-3 px-4 text-tulpar-muted text-sm font-medium">İşlem</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredOrders.map((order) => (
+                        <tr key={order.id} className="border-b border-tulpar-border last:border-b-0 hover:bg-tulpar-section/50">
+                          <td className="py-3 px-4">
+                            <p className="text-tulpar-text font-medium text-sm">{order.customerName || '-'}</p>
+                            <p className="text-tulpar-muted text-xs">{order.customerPhone || '-'}</p>
+                          </td>
+                          <td className="py-3 px-4 text-tulpar-text text-sm">
+                            {order.pickupZone} → {order.dropZone}
+                          </td>
+                          <td className="py-3 px-4 text-tulpar-primary font-medium text-sm">
+                            {order.total?.toFixed(2)} ₺
+                          </td>
+                          <td className="py-3 px-4">
+                            <Select value={order.status} onValueChange={(v) => updateOrderStatus(order.id, v)}>
+                              <SelectTrigger className={`w-28 h-8 text-xs border-0 ${
+                                order.status === 'new' ? 'bg-yellow-100 text-yellow-700' :
+                                order.status === 'processing' ? 'bg-orange-100 text-orange-700' :
+                                order.status === 'completed' ? 'bg-green-100 text-green-700' :
+                                'bg-red-100 text-red-700'
+                              }`}>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-white border-tulpar-border">
+                                <SelectItem value="new">Yeni</SelectItem>
+                                <SelectItem value="processing">İşlemde</SelectItem>
+                                <SelectItem value="completed">Tamamlandı</SelectItem>
+                                <SelectItem value="cancelled">İptal</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </td>
+                          <td className="py-3 px-4 text-tulpar-muted text-sm">
+                            {new Date(order.createdAt).toLocaleDateString('tr-TR')}
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-2">
+                              <Button variant="ghost" size="sm" onClick={() => setSelectedOrder(order)} className="h-8 w-8 p-0">
+                                <Eye className="w-4 h-4 text-tulpar-muted" />
+                              </Button>
+                              {settings?.whatsappNumber && (
+                                <Button variant="ghost" size="sm" onClick={() => openWhatsApp(order)} className="h-8 w-8 p-0">
+                                  <MessageCircle className="w-4 h-4 text-green-600" />
+                                </Button>
+                              )}
+                              <Button variant="ghost" size="sm" onClick={() => deleteOrder(order.id)} className="h-8 w-8 p-0">
+                                <Trash2 className="w-4 h-4 text-red-500" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </main>
       </div>
+
+      {/* Order Detail Dialog */}
+      <Dialog open={!!selectedOrder} onOpenChange={() => setSelectedOrder(null)}>
+        <DialogContent className="bg-white max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-tulpar-text">Sipariş Detayı</DialogTitle>
+          </DialogHeader>
+          {selectedOrder && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-tulpar-muted text-sm">Müşteri</p>
+                  <p className="text-tulpar-text font-medium">{selectedOrder.customerName}</p>
+                </div>
+                <div>
+                  <p className="text-tulpar-muted text-sm">Telefon</p>
+                  <p className="text-tulpar-text font-medium">{selectedOrder.customerPhone}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-tulpar-muted text-sm">Alım Bölgesi</p>
+                  <p className="text-tulpar-text font-medium">Bölge {selectedOrder.pickupZone}</p>
+                </div>
+                <div>
+                  <p className="text-tulpar-muted text-sm">Teslim Bölgesi</p>
+                  <p className="text-tulpar-text font-medium">Bölge {selectedOrder.dropZone}</p>
+                </div>
+              </div>
+              {selectedOrder.pickupAddress && (
+                <div>
+                  <p className="text-tulpar-muted text-sm">Alım Adresi</p>
+                  <p className="text-tulpar-text">{selectedOrder.pickupAddress}</p>
+                </div>
+              )}
+              {selectedOrder.dropAddress && (
+                <div>
+                  <p className="text-tulpar-muted text-sm">Teslim Adresi</p>
+                  <p className="text-tulpar-text">{selectedOrder.dropAddress}</p>
+                </div>
+              )}
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <p className="text-tulpar-muted text-sm">Ağırlık</p>
+                  <p className="text-tulpar-text">{selectedOrder.weight} kg</p>
+                </div>
+                <div>
+                  <p className="text-tulpar-muted text-sm">Hacim</p>
+                  <p className="text-tulpar-text">{selectedOrder.volume} dm³</p>
+                </div>
+                <div>
+                  <p className="text-tulpar-muted text-sm">Bekleme</p>
+                  <p className="text-tulpar-text">{selectedOrder.waitMinutes} dk</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-tulpar-muted text-sm">Tarife</p>
+                  <p className="text-tulpar-text">{selectedOrder.tariff === 'pesin_kdv_dahil' ? 'Peşin (KDV Dahil)' : 'Abone (KDV Hariç)'}</p>
+                </div>
+                <div>
+                  <p className="text-tulpar-muted text-sm">Zaman</p>
+                  <p className="text-tulpar-text">{selectedOrder.timeSlot === 'daytime' ? 'Gündüz' : selectedOrder.timeSlot === 'evening' ? 'Akşam' : 'Gece'}</p>
+                </div>
+              </div>
+              {selectedOrder.isCarCourier && (
+                <div className="text-orange-600 text-sm">🚗 Araç kurye hizmeti</div>
+              )}
+              {selectedOrder.notes && (
+                <div>
+                  <p className="text-tulpar-muted text-sm">Not</p>
+                  <p className="text-tulpar-text">{selectedOrder.notes}</p>
+                </div>
+              )}
+              <div className="pt-4 border-t border-tulpar-border">
+                <div className="flex justify-between items-center">
+                  <span className="text-tulpar-text font-medium">Toplam Tutar</span>
+                  <span className="text-2xl font-bold text-tulpar-primary">{selectedOrder.total?.toFixed(2)} ₺</span>
+                </div>
+              </div>
+              <div className="text-tulpar-muted text-xs">
+                Oluşturulma: {new Date(selectedOrder.createdAt).toLocaleString('tr-TR')}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

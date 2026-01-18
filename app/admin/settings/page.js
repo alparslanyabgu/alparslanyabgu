@@ -11,18 +11,17 @@ import {
   LogOut,
   Menu,
   Save,
-  Eye,
-  EyeOff,
+  Lock,
   Phone,
-  Building,
   Mail,
   MapPin,
-  Lock
+  Building
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { TulparLogo } from '@/components/TulparLogo';
 
 export default function AdminSettingsPage() {
@@ -31,13 +30,13 @@ export default function AdminSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [message, setMessage] = useState({ type: '', text: '' });
   
   // Password change
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPasswords, setShowPasswords] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
 
   useEffect(() => {
@@ -50,6 +49,7 @@ export default function AdminSettingsPage() {
   }, []);
 
   const fetchSettings = async () => {
+    setLoading(true);
     try {
       const res = await fetch('/api/settings');
       const data = await res.json();
@@ -63,39 +63,37 @@ export default function AdminSettingsPage() {
 
   const saveSettings = async () => {
     setSaving(true);
-    setMessage({ type: '', text: '' });
     try {
-      const res = await fetch('/api/settings', {
+      await fetch('/api/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settings)
       });
-      if (res.ok) {
-        setMessage({ type: 'success', text: 'Ayarlar başarıyla kaydedildi!' });
-      } else {
-        setMessage({ type: 'error', text: 'Kaydetme hatası oluştu.' });
-      }
+      alert('Ayarlar başarıyla güncellendi!');
     } catch (err) {
-      setMessage({ type: 'error', text: 'Bir hata oluştu.' });
+      console.error('Kayıt hatası:', err);
+      alert('Kaydetme sırasında bir hata oluştu.');
     } finally {
       setSaving(false);
-      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
     }
   };
 
-  const changePassword = async () => {
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    setPasswordError('');
+    setPasswordSuccess('');
+
     if (newPassword !== confirmPassword) {
-      setMessage({ type: 'error', text: 'Şifreler eşleşmiyor!' });
+      setPasswordError('Yeni şifreler eşleşmiyor');
       return;
     }
+
     if (newPassword.length < 6) {
-      setMessage({ type: 'error', text: 'Şifre en az 6 karakter olmalı!' });
+      setPasswordError('Şifre en az 6 karakter olmalı');
       return;
     }
 
     setChangingPassword(true);
-    setMessage({ type: '', text: '' });
-    
     try {
       const adminUser = JSON.parse(localStorage.getItem('adminUser') || '{}');
       const res = await fetch('/api/admin/change-password', {
@@ -107,22 +105,21 @@ export default function AdminSettingsPage() {
           newPassword
         })
       });
-      
+
       const data = await res.json();
       
-      if (res.ok) {
-        setMessage({ type: 'success', text: 'Şifre başarıyla değiştirildi!' });
+      if (!res.ok) {
+        setPasswordError(data.error || 'Şifre değiştirilemedi');
+      } else {
+        setPasswordSuccess('Şifre başarıyla değiştirildi!');
         setCurrentPassword('');
         setNewPassword('');
         setConfirmPassword('');
-      } else {
-        setMessage({ type: 'error', text: data.error || 'Şifre değiştirilemedi.' });
       }
     } catch (err) {
-      setMessage({ type: 'error', text: 'Bir hata oluştu.' });
+      setPasswordError('Bir hata oluştu');
     } finally {
       setChangingPassword(false);
-      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
     }
   };
 
@@ -173,7 +170,9 @@ export default function AdminSettingsPage() {
         </div>
       </aside>
 
-      {sidebarOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />}
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
+      )}
 
       <div className="lg:ml-64">
         <header className="sticky top-0 z-30 bg-white border-b border-tulpar-border px-4 py-3">
@@ -182,140 +181,139 @@ export default function AdminSettingsPage() {
               <Menu className="w-6 h-6" />
             </button>
             <h1 className="text-lg font-semibold text-tulpar-text">Ayarlar</h1>
-            <div></div>
+            <Button onClick={saveSettings} disabled={saving} size="sm" className="bg-tulpar-primary hover:bg-tulpar-primary-hover text-white">
+              <Save className="w-4 h-4 mr-2" />
+              {saving ? 'Kaydediliyor...' : 'Kaydet'}
+            </Button>
           </div>
         </header>
 
-        <main className="p-6 max-w-3xl">
-          {message.text && (
-            <div className={`mb-6 p-4 rounded-lg ${
-              message.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'
-            }`}>
-              {message.text}
-            </div>
-          )}
-
+        <main className="p-6 space-y-6">
           {loading ? (
             <p className="text-tulpar-muted text-center py-12">Yükleniyor...</p>
-          ) : settings && (
-            <div className="space-y-6">
-              {/* Company Settings */}
+          ) : !settings ? (
+            <p className="text-red-500 text-center py-12">Ayarlar yüklenemedi</p>
+          ) : (
+            <>
+              {/* General Settings */}
               <Card className="bg-white border-tulpar-border">
                 <CardHeader>
-                  <CardTitle className="text-tulpar-text text-base flex items-center gap-2">
+                  <CardTitle className="text-tulpar-text flex items-center gap-2">
                     <Building className="w-5 h-5" />
-                    Firma Bilgileri
+                    Genel Ayarlar
                   </CardTitle>
+                  <CardDescription>İşletme bilgilerinizi düzenleyin</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div>
-                    <Label className="text-tulpar-muted text-sm">Firma Adı</Label>
-                    <Input
-                      value={settings.companyName || ''}
-                      onChange={(e) => setSettings({ ...settings, companyName: e.target.value })}
-                      className="bg-white border-tulpar-border"
-                    />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-tulpar-text">Şirket Adı</Label>
+                      <Input
+                        value={settings.companyName || ''}
+                        onChange={(e) => setSettings({ ...settings, companyName: e.target.value })}
+                        className="bg-white border-tulpar-border"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-tulpar-text flex items-center gap-2">
+                        <Phone className="w-4 h-4" />
+                        WhatsApp Numarası
+                      </Label>
+                      <Input
+                        value={settings.whatsappNumber || ''}
+                        onChange={(e) => setSettings({ ...settings, whatsappNumber: e.target.value })}
+                        placeholder="905xxxxxxxxx"
+                        className="bg-white border-tulpar-border"
+                      />
+                      <p className="text-xs text-tulpar-muted">Ülke kodu ile birlikte (90 ile başlayın)</p>
+                    </div>
                   </div>
-                  <div>
-                    <Label className="text-tulpar-muted text-sm">E-posta</Label>
-                    <Input
-                      type="email"
-                      value={settings.email || ''}
-                      onChange={(e) => setSettings({ ...settings, email: e.target.value })}
-                      className="bg-white border-tulpar-border"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-tulpar-muted text-sm">Adres</Label>
-                    <Input
-                      value={settings.address || ''}
-                      onChange={(e) => setSettings({ ...settings, address: e.target.value })}
-                      className="bg-white border-tulpar-border"
-                    />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-tulpar-text flex items-center gap-2">
+                        <Mail className="w-4 h-4" />
+                        E-posta
+                      </Label>
+                      <Input
+                        type="email"
+                        value={settings.email || ''}
+                        onChange={(e) => setSettings({ ...settings, email: e.target.value })}
+                        className="bg-white border-tulpar-border"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-tulpar-text flex items-center gap-2">
+                        <MapPin className="w-4 h-4" />
+                        Adres
+                      </Label>
+                      <Input
+                        value={settings.address || ''}
+                        onChange={(e) => setSettings({ ...settings, address: e.target.value })}
+                        className="bg-white border-tulpar-border"
+                      />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
-
-              {/* WhatsApp Settings */}
-              <Card className="bg-white border-tulpar-border">
-                <CardHeader>
-                  <CardTitle className="text-tulpar-text text-base flex items-center gap-2">
-                    <Phone className="w-5 h-5" />
-                    WhatsApp Ayarları
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div>
-                    <Label className="text-tulpar-muted text-sm">WhatsApp Numarası</Label>
-                    <Input
-                      placeholder="905xxxxxxxxx (başında + olmadan)"
-                      value={settings.whatsappNumber || ''}
-                      onChange={(e) => setSettings({ ...settings, whatsappNumber: e.target.value })}
-                      className="bg-white border-tulpar-border"
-                    />
-                    <p className="text-xs text-tulpar-muted mt-1">
-                      Örnek: 905551234567 (ülke kodu ile, başında + olmadan)
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Button onClick={saveSettings} disabled={saving} className="bg-tulpar-primary hover:bg-tulpar-primary-hover text-white">
-                <Save className="w-4 h-4 mr-2" />
-                {saving ? 'Kaydediliyor...' : 'Ayarları Kaydet'}
-              </Button>
 
               {/* Password Change */}
               <Card className="bg-white border-tulpar-border">
                 <CardHeader>
-                  <CardTitle className="text-tulpar-text text-base flex items-center gap-2">
+                  <CardTitle className="text-tulpar-text flex items-center gap-2">
                     <Lock className="w-5 h-5" />
                     Şifre Değiştir
                   </CardTitle>
+                  <CardDescription>Admin şifrenizi güncelleyin</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label className="text-tulpar-muted text-sm">Mevcut Şifre</Label>
-                    <div className="relative">
+                <CardContent>
+                  <form onSubmit={handlePasswordChange} className="space-y-4 max-w-md">
+                    {passwordError && (
+                      <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+                        {passwordError}
+                      </div>
+                    )}
+                    {passwordSuccess && (
+                      <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-600 text-sm">
+                        {passwordSuccess}
+                      </div>
+                    )}
+                    <div className="space-y-2">
+                      <Label className="text-tulpar-text">Mevcut Şifre</Label>
                       <Input
-                        type={showPasswords ? 'text' : 'password'}
+                        type="password"
                         value={currentPassword}
                         onChange={(e) => setCurrentPassword(e.target.value)}
-                        className="bg-white border-tulpar-border pr-10"
+                        className="bg-white border-tulpar-border"
+                        required
                       />
-                      <button
-                        type="button"
-                        onClick={() => setShowPasswords(!showPasswords)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-tulpar-muted"
-                      >
-                        {showPasswords ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
                     </div>
-                  </div>
-                  <div>
-                    <Label className="text-tulpar-muted text-sm">Yeni Şifre</Label>
-                    <Input
-                      type={showPasswords ? 'text' : 'password'}
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      className="bg-white border-tulpar-border"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-tulpar-muted text-sm">Yeni Şifre (Tekrar)</Label>
-                    <Input
-                      type={showPasswords ? 'text' : 'password'}
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="bg-white border-tulpar-border"
-                    />
-                  </div>
-                  <Button onClick={changePassword} disabled={changingPassword} variant="outline" className="border-tulpar-border">
-                    {changingPassword ? 'Değiştiriliyor...' : 'Şifreyi Değiştir'}
-                  </Button>
+                    <div className="space-y-2">
+                      <Label className="text-tulpar-text">Yeni Şifre</Label>
+                      <Input
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className="bg-white border-tulpar-border"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-tulpar-text">Yeni Şifre (Tekrar)</Label>
+                      <Input
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="bg-white border-tulpar-border"
+                        required
+                      />
+                    </div>
+                    <Button type="submit" disabled={changingPassword} className="bg-tulpar-primary hover:bg-tulpar-primary-hover text-white">
+                      {changingPassword ? 'Değiştiriliyor...' : 'Şifreyi Değiştir'}
+                    </Button>
+                  </form>
                 </CardContent>
               </Card>
-            </div>
+            </>
           )}
         </main>
       </div>

@@ -14,9 +14,10 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TulparLogo } from '@/components/TulparLogo';
 
 export default function AdminPricingPage() {
@@ -25,8 +26,7 @@ export default function AdminPricingPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('pesin');
-  const [message, setMessage] = useState({ type: '', text: '' });
+  const [activeTab, setActiveTab] = useState('pesin_kdv_dahil');
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
@@ -38,29 +38,30 @@ export default function AdminPricingPage() {
   }, []);
 
   const fetchPricing = async () => {
+    setLoading(true);
     try {
       const res = await fetch('/api/pricing');
       const data = await res.json();
       setPricing(data);
     } catch (err) {
-      console.error('Fiyatlar yüklenemedi:', err);
+      console.error('Fiyat verisi yüklenemedi:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleMatrixChange = (tariffKey, fromZone, toZone, value) => {
+  const handleMatrixChange = (tariff, from, to, value) => {
     setPricing(prev => ({
       ...prev,
       tariffs: {
         ...prev.tariffs,
-        [tariffKey]: {
-          ...prev.tariffs[tariffKey],
+        [tariff]: {
+          ...prev.tariffs[tariff],
           base_matrix: {
-            ...prev.tariffs[tariffKey].base_matrix,
-            [fromZone]: {
-              ...prev.tariffs[tariffKey].base_matrix[fromZone],
-              [toZone]: parseFloat(value) || 0
+            ...prev.tariffs[tariff].base_matrix,
+            [from]: {
+              ...prev.tariffs[tariff].base_matrix[from],
+              [to]: parseFloat(value) || 0
             }
           }
         }
@@ -68,14 +69,14 @@ export default function AdminPricingPage() {
     }));
   };
 
-  const handleSettingChange = (tariffKey, field, value) => {
+  const handleSettingChange = (tariff, key, value) => {
     setPricing(prev => ({
       ...prev,
       tariffs: {
         ...prev.tariffs,
-        [tariffKey]: {
-          ...prev.tariffs[tariffKey],
-          [field]: parseFloat(value) || 0
+        [tariff]: {
+          ...prev.tariffs[tariff],
+          [key]: parseFloat(value) || 0
         }
       }
     }));
@@ -83,23 +84,18 @@ export default function AdminPricingPage() {
 
   const savePricing = async () => {
     setSaving(true);
-    setMessage({ type: '', text: '' });
     try {
-      const res = await fetch('/api/pricing', {
+      await fetch('/api/pricing', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(pricing)
       });
-      if (res.ok) {
-        setMessage({ type: 'success', text: 'Fiyatlar başarıyla kaydedildi!' });
-      } else {
-        setMessage({ type: 'error', text: 'Kaydetme hatası oluştu.' });
-      }
+      alert('Fiyatlar başarıyla güncellendi!');
     } catch (err) {
-      setMessage({ type: 'error', text: 'Bir hata oluştu.' });
+      console.error('Kayıt hatası:', err);
+      alert('Kaydetme sırasında bir hata oluştu.');
     } finally {
       setSaving(false);
-      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
     }
   };
 
@@ -110,8 +106,6 @@ export default function AdminPricingPage() {
   };
 
   const zones = [1, 2, 3, 4, 5, 6, 7, 8];
-  const tariffKey = activeTab === 'pesin' ? 'pesin_kdv_dahil' : 'abone_kdv_haric';
-  const currentTariff = pricing?.tariffs?.[tariffKey];
 
   return (
     <div className="min-h-screen bg-tulpar-bg">
@@ -154,7 +148,9 @@ export default function AdminPricingPage() {
         </div>
       </aside>
 
-      {sidebarOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />}
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
+      )}
 
       <div className="lg:ml-64">
         <header className="sticky top-0 z-30 bg-white border-b border-tulpar-border px-4 py-3">
@@ -163,157 +159,165 @@ export default function AdminPricingPage() {
               <Menu className="w-6 h-6" />
             </button>
             <h1 className="text-lg font-semibold text-tulpar-text">Fiyatlandırma</h1>
-            <Button onClick={savePricing} disabled={saving} className="bg-tulpar-primary hover:bg-tulpar-primary-hover text-white">
-              <Save className="w-4 h-4 mr-2" />
-              {saving ? 'Kaydediliyor...' : 'Kaydet'}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button onClick={fetchPricing} variant="outline" size="sm" className="border-tulpar-border">
+                <RefreshCw className="w-4 h-4" />
+              </Button>
+              <Button onClick={savePricing} disabled={saving} size="sm" className="bg-tulpar-primary hover:bg-tulpar-primary-hover text-white">
+                <Save className="w-4 h-4 mr-2" />
+                {saving ? 'Kaydediliyor...' : 'Kaydet'}
+              </Button>
+            </div>
           </div>
         </header>
 
         <main className="p-6">
-          {message.text && (
-            <div className={`mb-6 p-4 rounded-lg ${
-              message.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'
-            }`}>
-              {message.text}
-            </div>
-          )}
-
           {loading ? (
             <p className="text-tulpar-muted text-center py-12">Yükleniyor...</p>
-          ) : pricing && (
-            <>
-              {/* Tabs */}
-              <div className="flex gap-2 mb-6">
-                <button
-                  onClick={() => setActiveTab('pesin')}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    activeTab === 'pesin' ? 'bg-tulpar-primary text-white' : 'bg-white text-tulpar-muted border border-tulpar-border hover:bg-tulpar-section'
-                  }`}
-                >
+          ) : !pricing ? (
+            <p className="text-red-500 text-center py-12">Fiyat verisi yüklenemedi</p>
+          ) : (
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="bg-white border border-tulpar-border mb-6">
+                <TabsTrigger value="pesin_kdv_dahil" className="data-[state=active]:bg-tulpar-primary data-[state=active]:text-white">
                   Peşin (KDV Dahil)
-                </button>
-                <button
-                  onClick={() => setActiveTab('abone')}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    activeTab === 'abone' ? 'bg-tulpar-primary text-white' : 'bg-white text-tulpar-muted border border-tulpar-border hover:bg-tulpar-section'
-                  }`}
-                >
+                </TabsTrigger>
+                <TabsTrigger value="abone_kdv_haric" className="data-[state=active]:bg-tulpar-primary data-[state=active]:text-white">
                   Abone (KDV Hariç)
-                </button>
-              </div>
+                </TabsTrigger>
+              </TabsList>
 
-              {/* Settings */}
-              <Card className="bg-white border-tulpar-border mb-6">
-                <CardHeader>
-                  <CardTitle className="text-tulpar-text text-base">Çarpanlar ve Ek Ücretler</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div>
-                      <Label className="text-tulpar-muted text-xs">Ek Kg/Dm³ Ücreti</Label>
-                      <Input
-                        type="number"
-                        step="0.1"
-                        value={currentTariff?.extra_per_kg_or_dm3 || 0}
-                        onChange={(e) => handleSettingChange(tariffKey, 'extra_per_kg_or_dm3', e.target.value)}
-                        className="bg-white border-tulpar-border"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-tulpar-muted text-xs">Bekleme (₺/dk)</Label>
-                      <Input
-                        type="number"
-                        step="0.1"
-                        value={currentTariff?.wait_per_minute || 0}
-                        onChange={(e) => handleSettingChange(tariffKey, 'wait_per_minute', e.target.value)}
-                        className="bg-white border-tulpar-border"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-tulpar-muted text-xs">Akşam Çarpanı</Label>
-                      <Input
-                        type="number"
-                        step="0.5"
-                        value={currentTariff?.evening_multiplier || 0}
-                        onChange={(e) => handleSettingChange(tariffKey, 'evening_multiplier', e.target.value)}
-                        className="bg-white border-tulpar-border"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-tulpar-muted text-xs">Gece Çarpanı</Label>
-                      <Input
-                        type="number"
-                        step="0.5"
-                        value={currentTariff?.night_multiplier || 0}
-                        onChange={(e) => handleSettingChange(tariffKey, 'night_multiplier', e.target.value)}
-                        className="bg-white border-tulpar-border"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-tulpar-muted text-xs">Araç Kurye Çarpanı</Label>
-                      <Input
-                        type="number"
-                        step="1"
-                        value={currentTariff?.car_multiplier || 0}
-                        onChange={(e) => handleSettingChange(tariffKey, 'car_multiplier', e.target.value)}
-                        className="bg-white border-tulpar-border"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-tulpar-muted text-xs">Ücretsiz Bekleme (dk)</Label>
-                      <Input
-                        type="number"
-                        step="1"
-                        value={currentTariff?.wait_free_minutes || 0}
-                        onChange={(e) => handleSettingChange(tariffKey, 'wait_free_minutes', e.target.value)}
-                        className="bg-white border-tulpar-border"
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Price Matrix */}
-              <Card className="bg-white border-tulpar-border">
-                <CardHeader>
-                  <CardTitle className="text-tulpar-text text-base">Bölge Fiyat Matrisi (Taban Ücret)</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr>
-                          <th className="p-2 bg-tulpar-section text-tulpar-muted font-medium">Alım / Teslim</th>
-                          {zones.map(z => (
-                            <th key={z} className="p-2 bg-tulpar-section text-tulpar-muted font-medium text-center">B{z}</th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {zones.map(fromZone => (
-                          <tr key={fromZone}>
-                            <td className="p-2 bg-tulpar-section text-tulpar-muted font-medium">Bölge {fromZone}</td>
-                            {zones.map(toZone => (
-                              <td key={toZone} className="p-1">
-                                <Input
-                                  type="number"
-                                  min="0"
-                                  step="1"
-                                  value={currentTariff?.base_matrix?.[fromZone]?.[toZone] || 0}
-                                  onChange={(e) => handleMatrixChange(tariffKey, fromZone, toZone, e.target.value)}
-                                  className="w-16 text-center bg-white border-tulpar-border text-sm p-1 h-8"
-                                />
-                              </td>
+              {['pesin_kdv_dahil', 'abone_kdv_haric'].map(tariff => (
+                <TabsContent key={tariff} value={tariff} className="space-y-6">
+                  {/* Price Matrix */}
+                  <Card className="bg-white border-tulpar-border">
+                    <CardHeader>
+                      <CardTitle className="text-tulpar-text">Fiyat Matrisi (TL)</CardTitle>
+                      <CardDescription>Satır: Alım Bölgesi, Sütun: Teslim Bölgesi</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr>
+                              <th className="p-2 text-tulpar-muted font-medium">Bölge</th>
+                              {zones.map(z => (
+                                <th key={z} className="p-2 text-tulpar-muted font-medium text-center">B{z}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {zones.map(from => (
+                              <tr key={from}>
+                                <td className="p-2 text-tulpar-text font-medium">B{from}</td>
+                                {zones.map(to => (
+                                  <td key={to} className="p-1">
+                                    <Input
+                                      type="number"
+                                      min="0"
+                                      step="0.5"
+                                      value={pricing.tariffs[tariff].base_matrix[from.toString()][to.toString()]}
+                                      onChange={(e) => handleMatrixChange(tariff, from.toString(), to.toString(), e.target.value)}
+                                      className="w-16 h-8 text-center text-sm bg-white border-tulpar-border"
+                                    />
+                                  </td>
+                                ))}
+                              </tr>
                             ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </CardContent>
-              </Card>
-            </>
+                          </tbody>
+                        </table>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Other Settings */}
+                  <Card className="bg-white border-tulpar-border">
+                    <CardHeader>
+                      <CardTitle className="text-tulpar-text">Diğer Ayarlar</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                          <Label className="text-tulpar-text">Ücretsiz Bekleme (dk)</Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            value={pricing.tariffs[tariff].wait_free_minutes}
+                            onChange={(e) => handleSettingChange(tariff, 'wait_free_minutes', e.target.value)}
+                            className="bg-white border-tulpar-border"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-tulpar-text">Bekleme Ücreti (TL/dk)</Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.1"
+                            value={pricing.tariffs[tariff].wait_per_minute}
+                            onChange={(e) => handleSettingChange(tariff, 'wait_per_minute', e.target.value)}
+                            className="bg-white border-tulpar-border"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-tulpar-text">Dahil kg/dm³</Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            value={pricing.tariffs[tariff].base_includes_kg_or_dm3}
+                            onChange={(e) => handleSettingChange(tariff, 'base_includes_kg_or_dm3', e.target.value)}
+                            className="bg-white border-tulpar-border"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-tulpar-text">Ekstra kg/dm³ Ücreti (TL)</Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.1"
+                            value={pricing.tariffs[tariff].extra_per_kg_or_dm3}
+                            onChange={(e) => handleSettingChange(tariff, 'extra_per_kg_or_dm3', e.target.value)}
+                            className="bg-white border-tulpar-border"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-tulpar-text">Akşam Çarpanı (18:00-21:00)</Label>
+                          <Input
+                            type="number"
+                            min="1"
+                            step="0.1"
+                            value={pricing.tariffs[tariff].evening_multiplier}
+                            onChange={(e) => handleSettingChange(tariff, 'evening_multiplier', e.target.value)}
+                            className="bg-white border-tulpar-border"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-tulpar-text">Gece Çarpanı (21:00-24:00)</Label>
+                          <Input
+                            type="number"
+                            min="1"
+                            step="0.1"
+                            value={pricing.tariffs[tariff].night_multiplier}
+                            onChange={(e) => handleSettingChange(tariff, 'night_multiplier', e.target.value)}
+                            className="bg-white border-tulpar-border"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-tulpar-text">Araç Kurye Çarpanı</Label>
+                          <Input
+                            type="number"
+                            min="1"
+                            step="0.1"
+                            value={pricing.tariffs[tariff].car_multiplier}
+                            onChange={(e) => handleSettingChange(tariff, 'car_multiplier', e.target.value)}
+                            className="bg-white border-tulpar-border"
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              ))}
+            </Tabs>
           )}
         </main>
       </div>
