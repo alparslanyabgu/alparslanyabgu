@@ -113,7 +113,7 @@ export default function AdminLoginPage() {
 
           <div className="mt-6 pt-4 border-t border-tulpar-border">
             <p className="text-tulpar-muted text-xs text-center">
-              Varsayılan: admin / admin123
+              Yönetici girişi yapınız
             </p>
           </div>
         </CardContent>
