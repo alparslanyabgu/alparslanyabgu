@@ -11,7 +11,6 @@ export function WhatsAppFloatingButton() {
     if (hasNumber) {
       window.open(`https://wa.me/${whatsappNumber}`, '_blank');
     } else {
-      // İletişim sayfasına yönlendir
       window.location.href = '/iletisim';
     }
   };
@@ -23,24 +22,21 @@ export function WhatsAppFloatingButton() {
       aria-label={hasNumber ? 'WhatsApp ile iletişime geç' : 'İletişim sayfasına git'}
     >
       <div className="relative">
-        {/* Glow effect */}
-        <div className="absolute inset-0 bg-tulpar-turquoise rounded-full blur-lg opacity-50 group-hover:opacity-75 transition-opacity" />
-        
         {/* Button */}
-        <div className="relative flex items-center justify-center w-14 h-14 bg-gradient-to-br from-tulpar-turquoise to-tulpar-gold rounded-full shadow-lg transform group-hover:scale-110 transition-transform">
-          <MessageCircle className="w-7 h-7 text-tulpar-night" />
+        <div className="relative flex items-center justify-center w-14 h-14 bg-tulpar-primary hover:bg-tulpar-primary-hover rounded-full shadow-lg transition-all duration-150">
+          <MessageCircle className="w-6 h-6 text-white" />
         </div>
         
         {/* Tooltip */}
-        <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-tulpar-surface border border-tulpar-turquoise/30 rounded-lg px-3 py-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+        <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-white border border-tulpar-border rounded-lg px-3 py-2 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm whitespace-nowrap">
           <span className="text-sm text-tulpar-text">
-            {hasNumber ? "WhatsApp'tan Yaz" : 'İletişime Geç'}
+            {hasNumber ? "WhatsApp'tan Yaz" : 'WhatsApp hattımız yakında aktif'}
           </span>
         </div>
       </div>
       
       {!hasNumber && (
-        <span className="absolute -top-2 -left-2 bg-tulpar-gold text-tulpar-night text-xs px-2 py-0.5 rounded-full font-medium">
+        <span className="absolute -top-1 -left-1 bg-tulpar-accent text-white text-xs px-2 py-0.5 rounded-full font-medium">
           Yakında
         </span>
       )}
@@ -48,7 +44,7 @@ export function WhatsAppFloatingButton() {
   );
 }
 
-export function WhatsAppButton({ message, className = '', children }) {
+export function WhatsAppButton({ message, className = '', children, disabled }) {
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
   const hasNumber = whatsappNumber && whatsappNumber.trim() !== '';
 
@@ -63,13 +59,25 @@ export function WhatsAppButton({ message, className = '', children }) {
     }
   };
 
+  if (!hasNumber) {
+    return (
+      <Button
+        disabled
+        className={`bg-gray-200 text-gray-500 cursor-not-allowed ${className}`}
+      >
+        <MessageCircle className="w-5 h-5 mr-2" />
+        WhatsApp hattımız yakında aktif
+      </Button>
+    );
+  }
+
   return (
     <Button
       onClick={handleClick}
-      className={`bg-gradient-to-r from-tulpar-turquoise to-tulpar-gold text-tulpar-night font-semibold hover:opacity-90 ${className}`}
+      className={`bg-tulpar-primary hover:bg-tulpar-primary-hover text-white ${className}`}
     >
       <MessageCircle className="w-5 h-5 mr-2" />
-      {children || (hasNumber ? "WhatsApp'tan Yaz" : 'İletişime Geç')}
+      {children || "WhatsApp'tan Yaz"}
     </Button>
   );
 }

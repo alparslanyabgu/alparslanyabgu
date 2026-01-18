@@ -6,10 +6,10 @@ import { WhatsAppFloatingButton } from '@/components/WhatsAppButton'
 export const metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://tulparkurye.com'),
   title: {
-    default: 'Tulpar Kurye | İstanbul Hızlı Kurye Hizmeti',
+    default: 'Tulpar Kurye | İstanbul Kurye Hizmeti',
     template: '%s | Tulpar Kurye'
   },
-  description: 'İstanbul\'un en hızlı kurye hizmeti. Moto kurye, araç kurye, acil teslimat. Şeffaf fiyat, anında hesaplama. Tulpar gibi hızlı!',
+  description: 'İstanbul genelinde güvenilir kurye hizmeti. Moto kurye, araç kurye, acil teslimat. Şeffaf fiyat, anında hesaplama.',
   keywords: ['kurye', 'istanbul kurye', 'moto kurye', 'hızlı kurye', 'acil kurye', 'kurye hizmeti', 'evrak kurye', 'e-ticaret teslimat'],
   authors: [{ name: 'Tulpar Kurye' }],
   creator: 'Tulpar Kurye',
@@ -18,13 +18,13 @@ export const metadata = {
     locale: 'tr_TR',
     url: '/',
     siteName: 'Tulpar Kurye',
-    title: 'Tulpar Kurye | İstanbul Hızlı Kurye Hizmeti',
-    description: 'İstanbul\'un en hızlı kurye hizmeti. Şeffaf fiyat, anında hesaplama.',
+    title: 'Tulpar Kurye | İstanbul Kurye Hizmeti',
+    description: 'İstanbul genelinde güvenilir kurye hizmeti. Şeffaf fiyat, anında hesaplama.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Tulpar Kurye | İstanbul Hızlı Kurye',
-    description: 'İstanbul\'un en hızlı kurye hizmeti.',
+    title: 'Tulpar Kurye | İstanbul Kurye',
+    description: 'İstanbul genelinde güvenilir kurye hizmeti.',
   },
   robots: {
     index: true,
@@ -38,9 +38,9 @@ export default function RootLayout({ children }) {
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
-      <body className="font-sans antialiased tulpar-pattern min-h-screen">
+      <body className="min-h-screen">
         <Header />
         <main className="pt-16">
           {children}
@@ -56,7 +56,7 @@ export default function RootLayout({ children }) {
               "@context": "https://schema.org",
               "@type": "LocalBusiness",
               "name": "Tulpar Kurye",
-              "description": "İstanbul hızlı kurye hizmeti. Moto kurye, araç kurye, acil teslimat.",
+              "description": "İstanbul kurye hizmeti. Moto kurye, araç kurye, acil teslimat.",
               "url": process.env.NEXT_PUBLIC_BASE_URL,
               "areaServed": {
                 "@type": "City",

@@ -4,30 +4,30 @@
 
 @layer base {
   :root {
-    --background: 222 47% 5%;
-    --foreground: 214 32% 91%;
-    --card: 222 47% 7%;
-    --card-foreground: 214 32% 91%;
-    --popover: 222 47% 5%;
-    --popover-foreground: 214 32% 91%;
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
     --primary: 169 74% 41%;
-    --primary-foreground: 222 47% 5%;
-    --secondary: 43 45% 54%;
-    --secondary-foreground: 222 47% 5%;
-    --muted: 215 20% 65%;
-    --muted-foreground: 214 32% 91%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
     --accent: 43 45% 54%;
-    --accent-foreground: 222 47% 5%;
+    --accent-foreground: 222 47% 11%;
     --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 222 47% 15%;
-    --input: 222 47% 15%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
     --ring: 169 74% 41%;
-    --radius: 0.75rem;
+    --radius: 12px;
     --chart-1: 169 74% 41%;
     --chart-2: 43 45% 54%;
-    --chart-3: 222 47% 50%;
-    --chart-4: 215 20% 65%;
+    --chart-3: 215 16% 47%;
+    --chart-4: 210 40% 96%;
     --chart-5: 0 84% 60%;
   }
 }
@@ -37,22 +37,14 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-tulpar-bg text-tulpar-text;
+    font-family: 'Inter', system-ui, sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
+    line-height: 1.6;
   }
-}
-
-/* Tulpar Özel Stilleri */
-.tulpar-pattern {
-  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2318B7A1' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-}
-
-.tulpar-glow {
-  box-shadow: 0 0 30px rgba(24, 183, 161, 0.3);
-}
-
-.tulpar-border {
-  border: 1px solid rgba(24, 183, 161, 0.3);
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold text-tulpar-text;
+  }
 }
 
 /* Smooth scrolling */
@@ -60,26 +52,31 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar - subtle */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0F172A;
+  background: #F1F5F9;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #18B7A1;
+  background: #CBD5E1;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #C7A24B;
+  background: #94A3B8;
 }
 
 /* Focus styles for accessibility */
 *:focus-visible {
   outline: 2px solid #18B7A1;
   outline-offset: 2px;
+}
+
+/* Consistent transitions */
+a, button, input, select, textarea {
+  transition: all 150ms ease;
 }

@@ -18,14 +18,17 @@ module.exports = {
         },
         extend: {
             colors: {
-                // Tulpar Mitolojik Tema Renkleri
+                // Tulpar Kurumsal Light Tema
                 tulpar: {
-                    night: '#0B1020',
-                    turquoise: '#18B7A1',
-                    gold: '#C7A24B',
-                    surface: '#0F172A',
-                    muted: '#94A3B8',
-                    text: '#E2E8F0',
+                    bg: '#F8FAFC',
+                    surface: '#FFFFFF',
+                    section: '#F1F5F9',
+                    border: '#E2E8F0',
+                    text: '#0F172A',
+                    muted: '#475569',
+                    primary: '#18B7A1',
+                    'primary-hover': '#129B89',
+                    accent: '#C7A24B',
                 },
                 border: 'hsl(var(--border))',
                 input: 'hsl(var(--input))',
@@ -79,9 +82,9 @@ module.exports = {
                 }
             },
             borderRadius: {
-                lg: 'var(--radius)',
-                md: 'calc(var(--radius) - 2px)',
-                sm: 'calc(var(--radius) - 4px)'
+                lg: '12px',
+                md: '10px',
+                sm: '8px'
             },
             keyframes: {
                 'accordion-down': {
@@ -91,25 +94,19 @@ module.exports = {
                 'accordion-up': {
                     from: { height: 'var(--radix-accordion-content-height)' },
                     to: { height: '0' }
-                },
-                'float': {
-                    '0%, 100%': { transform: 'translateY(0)' },
-                    '50%': { transform: 'translateY(-10px)' }
-                },
-                'pulse-glow': {
-                    '0%, 100%': { boxShadow: '0 0 20px rgba(24, 183, 161, 0.4)' },
-                    '50%': { boxShadow: '0 0 40px rgba(24, 183, 161, 0.8)' }
                 }
             },
             animation: {
                 'accordion-down': 'accordion-down 0.2s ease-out',
-                'accordion-up': 'accordion-up 0.2s ease-out',
-                'float': 'float 3s ease-in-out infinite',
-                'pulse-glow': 'pulse-glow 2s ease-in-out infinite'
+                'accordion-up': 'accordion-up 0.2s ease-out'
             },
-            backgroundImage: {
-                'tulpar-gradient': 'linear-gradient(135deg, #18B7A1 0%, #C7A24B 100%)',
-                'tulpar-dark': 'linear-gradient(180deg, #0B1020 0%, #0F172A 100%)',
+            fontSize: {
+                'hero': ['44px', { lineHeight: '1.2', fontWeight: '600' }],
+                'hero-mobile': ['34px', { lineHeight: '1.2', fontWeight: '600' }],
+            },
+            spacing: {
+                '18': '4.5rem',
+                '22': '5.5rem',
             }
         }
     },
