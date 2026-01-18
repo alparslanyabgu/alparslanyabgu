@@ -1,104 +1,164 @@
-import { MongoClient } from 'mongodb'
-import { v4 as uuidv4 } from 'uuid'
-import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server';
+import { 
+  getPricing, updatePricing,
+  createOrder, getOrders, getOrderById, updateOrderStatus, deleteOrder,
+  validateAdmin, changeAdminPassword,
+  getSettings, updateSettings
+} from '@/lib/db';
 
-// MongoDB connection
-let client
-let db
+// CORS headers
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
 
-async function connectToMongo() {
-  if (!client) {
-    client = new MongoClient(process.env.MONGO_URL)
-    await client.connect()
-    db = client.db(process.env.DB_NAME)
-  }
-  return db
-}
-
-// Helper function to handle CORS
-function handleCORS(response) {
-  response.headers.set('Access-Control-Allow-Origin', process.env.CORS_ORIGINS || '*')
-  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-  response.headers.set('Access-Control-Allow-Credentials', 'true')
-  return response
-}
-
-// OPTIONS handler for CORS
 export async function OPTIONS() {
-  return handleCORS(new NextResponse(null, { status: 200 }))
+  return NextResponse.json({}, { headers: corsHeaders });
 }
 
-// Route handler function
-async function handleRoute(request, { params }) {
-  const { path = [] } = params
-  const route = `/${path.join('/')}`
-  const method = request.method
+export async function GET(request, { params }) {
+  const pathSegments = params.path || [];
+  const path = '/' + pathSegments.join('/');
 
   try {
-    const db = await connectToMongo()
-
-    // Root endpoint - GET /api/root (since /api/ is not accessible with catch-all)
-    if (route === '/root' && method === 'GET') {
-      return handleCORS(NextResponse.json({ message: "Hello World" }))
-    }
-    // Root endpoint - GET /api/root (since /api/ is not accessible with catch-all)
-    if (route === '/' && method === 'GET') {
-      return handleCORS(NextResponse.json({ message: "Hello World" }))
+    // Health check
+    if (path === '/health') {
+      return NextResponse.json({ status: 'ok', timestamp: new Date().toISOString() }, { headers: corsHeaders });
     }
 
-    // Status endpoints - POST /api/status
-    if (route === '/status' && method === 'POST') {
-      const body = await request.json()
-      
-      if (!body.client_name) {
-        return handleCORS(NextResponse.json(
-          { error: "client_name is required" }, 
-          { status: 400 }
-        ))
+    // Get pricing
+    if (path === '/pricing') {
+      const pricing = await getPricing();
+      return NextResponse.json(pricing, { headers: corsHeaders });
+    }
+
+    // Get orders
+    if (path === '/orders') {
+      const { searchParams } = new URL(request.url);
+      const status = searchParams.get('status');
+      const orders = await getOrders(status);
+      return NextResponse.json(orders, { headers: corsHeaders });
+    }
+
+    // Get single order
+    if (path.startsWith('/orders/')) {
+      const orderId = pathSegments[1];
+      const order = await getOrderById(orderId);
+      if (!order) {
+        return NextResponse.json({ error: 'Sipariş bulunamadı' }, { status: 404, headers: corsHeaders });
       }
-
-      const statusObj = {
-        id: uuidv4(),
-        client_name: body.client_name,
-        timestamp: new Date()
-      }
-
-      await db.collection('status_checks').insertOne(statusObj)
-      return handleCORS(NextResponse.json(statusObj))
+      return NextResponse.json(order, { headers: corsHeaders });
     }
 
-    // Status endpoints - GET /api/status
-    if (route === '/status' && method === 'GET') {
-      const statusChecks = await db.collection('status_checks')
-        .find({})
-        .limit(1000)
-        .toArray()
-
-      // Remove MongoDB's _id field from response
-      const cleanedStatusChecks = statusChecks.map(({ _id, ...rest }) => rest)
-      
-      return handleCORS(NextResponse.json(cleanedStatusChecks))
+    // Get settings
+    if (path === '/settings') {
+      const settings = await getSettings();
+      return NextResponse.json(settings, { headers: corsHeaders });
     }
 
-    // Route not found
-    return handleCORS(NextResponse.json(
-      { error: `Route ${route} not found` }, 
-      { status: 404 }
-    ))
-
+    return NextResponse.json({ error: 'Not found' }, { status: 404, headers: corsHeaders });
   } catch (error) {
-    console.error('API Error:', error)
-    return handleCORS(NextResponse.json(
-      { error: "Internal server error" }, 
-      { status: 500 }
-    ))
+    console.error('API GET Error:', error);
+    return NextResponse.json({ error: error.message }, { status: 500, headers: corsHeaders });
   }
 }
 
-// Export all HTTP methods
-export const GET = handleRoute
-export const POST = handleRoute
-export const PUT = handleRoute
-export const DELETE = handleRoute
-export const PATCH = handleRoute
+export async function POST(request, { params }) {
+  const pathSegments = params.path || [];
+  const path = '/' + pathSegments.join('/');
+
+  try {
+    const body = await request.json();
+
+    // Admin login
+    if (path === '/admin/login') {
+      const { username, password } = body;
+      const admin = await validateAdmin(username, password);
+      
+      if (!admin) {
+        return NextResponse.json({ error: 'Geçersiz kullanıcı adı veya şifre' }, { status: 401, headers: corsHeaders });
+      }
+      
+      // Simple token (in production use JWT)
+      const token = Buffer.from(`${admin.username}:${Date.now()}`).toString('base64');
+      return NextResponse.json({ success: true, admin, token }, { headers: corsHeaders });
+    }
+
+    // Change password
+    if (path === '/admin/change-password') {
+      const { username, currentPassword, newPassword } = body;
+      const result = await changeAdminPassword(username, currentPassword, newPassword);
+      
+      if (!result.success) {
+        return NextResponse.json({ error: result.error }, { status: 400, headers: corsHeaders });
+      }
+      
+      return NextResponse.json({ success: true }, { headers: corsHeaders });
+    }
+
+    // Create order
+    if (path === '/orders') {
+      const order = await createOrder(body);
+      return NextResponse.json(order, { status: 201, headers: corsHeaders });
+    }
+
+    return NextResponse.json({ error: 'Not found' }, { status: 404, headers: corsHeaders });
+  } catch (error) {
+    console.error('API POST Error:', error);
+    return NextResponse.json({ error: error.message }, { status: 500, headers: corsHeaders });
+  }
+}
+
+export async function PUT(request, { params }) {
+  const pathSegments = params.path || [];
+  const path = '/' + pathSegments.join('/');
+
+  try {
+    const body = await request.json();
+
+    // Update pricing
+    if (path === '/pricing') {
+      const pricing = await updatePricing(body);
+      return NextResponse.json(pricing, { headers: corsHeaders });
+    }
+
+    // Update order status
+    if (path.startsWith('/orders/') && pathSegments.length === 2) {
+      const orderId = pathSegments[1];
+      const { status } = body;
+      const order = await updateOrderStatus(orderId, status);
+      return NextResponse.json(order, { headers: corsHeaders });
+    }
+
+    // Update settings
+    if (path === '/settings') {
+      const settings = await updateSettings(body);
+      return NextResponse.json(settings, { headers: corsHeaders });
+    }
+
+    return NextResponse.json({ error: 'Not found' }, { status: 404, headers: corsHeaders });
+  } catch (error) {
+    console.error('API PUT Error:', error);
+    return NextResponse.json({ error: error.message }, { status: 500, headers: corsHeaders });
+  }
+}
+
+export async function DELETE(request, { params }) {
+  const pathSegments = params.path || [];
+  const path = '/' + pathSegments.join('/');
+
+  try {
+    // Delete order
+    if (path.startsWith('/orders/')) {
+      const orderId = pathSegments[1];
+      await deleteOrder(orderId);
+      return NextResponse.json({ success: true }, { headers: corsHeaders });
+    }
+
+    return NextResponse.json({ error: 'Not found' }, { status: 404, headers: corsHeaders });
+  } catch (error) {
+    console.error('API DELETE Error:', error);
+    return NextResponse.json({ error: error.message }, { status: 500, headers: corsHeaders });
+  }
+}
