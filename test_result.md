@@ -102,35 +102,59 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Tulpar Kurye - İstanbul odaklı, mitolojik temalı kurye web sitesi. Ana özellik: Ücret Hesaplama modülü"
+user_problem_statement: "Tulpar Kurye - İstanbul odaklı kurye web sitesi + Admin Paneli. Sipariş sistemi ve WhatsApp entegrasyonu, dinamik fiyatlandırma yönetimi."
 
 backend:
-  - task: "Pricing calculation API"
-    implemented: true
-    working: "NA"
-    file: "lib/pricing.js"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: true
-    status_history:
-      - working: "NA"
-        agent: "main"
-        comment: "Ücret hesaplama modülü implement edildi. 8 bölge, 2 tarife, zaman çarpanları dahil."
-
-frontend:
-  - task: "Homepage with Tulpar branding"
+  - task: "Pricing API (GET/PUT)"
     implemented: true
     working: true
-    file: "app/page.js"
+    file: "app/api/[[...path]]/route.js"
     stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
       - working: true
         agent: "main"
-        comment: "Screenshot ile doğrulandı. Hero, CTA butonları, hizmetler çalışıyor."
+        comment: "Fiyatlandırma veritabanından alınıyor ve güncellenebiliyor. curl ile test edildi."
 
-  - task: "Price Calculator Page"
+  - task: "Orders API (CRUD)"
+    implemented: true
+    working: true
+    file: "app/api/[[...path]]/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Sipariş oluşturma, listeleme, durum güncelleme, silme çalışıyor."
+
+  - task: "Admin Authentication"
+    implemented: true
+    working: true
+    file: "app/api/[[...path]]/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Kullanıcı: Tulpar, Şifre: 123321Ttk. ile test edildi. Başarılı."
+
+  - task: "Settings API"
+    implemented: true
+    working: true
+    file: "app/api/[[...path]]/route.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "WhatsApp numarası 905339298308 olarak ayarlandı."
+
+frontend:
+  - task: "Price Calculator with Order Form"
     implemented: true
     working: true
     file: "app/ucret-hesapla/page.js"
@@ -140,19 +164,67 @@ frontend:
     status_history:
       - working: true
         agent: "main"
-        comment: "Screenshot ile doğrulandı. Form ve hesaplama çalışıyor."
+        comment: "Ücret hesaplama + sipariş formu + WhatsApp yönlendirmesi çalışıyor."
 
-  - task: "Blog Pages"
+  - task: "Admin Login Page"
     implemented: true
     working: true
-    file: "app/blog/page.js"
+    file: "app/admin/page.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Screenshot ile doğrulandı. Giriş başarılı."
+
+  - task: "Admin Dashboard"
+    implemented: true
+    working: true
+    file: "app/admin/dashboard/page.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Screenshot ile doğrulandı. Sipariş istatistikleri ve son siparişler görünüyor."
+
+  - task: "Admin Orders Page"
+    implemented: true
+    working: true
+    file: "app/admin/orders/page.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Sipariş listesi, durum güncelleme, detay görüntüleme oluşturuldu."
+
+  - task: "Admin Pricing Page"
+    implemented: true
+    working: true
+    file: "app/admin/pricing/page.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Screenshot ile doğrulandı. Fiyat matrisi ve diğer ayarlar düzenlenebilir."
+
+  - task: "Admin Settings Page"
+    implemented: true
+    working: true
+    file: "app/admin/settings/page.js"
     stuck_count: 0
     priority: "medium"
     needs_retesting: false
     status_history:
       - working: true
         agent: "main"
-        comment: "10 blog yazısı ile çalışıyor."
+        comment: "WhatsApp numarası, şirket bilgileri ve şifre değiştirme oluşturuldu."
 
   - task: "Other Pages (Hizmetler, Bölgeler, Abonelik, İletişim, Legal)"
     implemented: true
@@ -168,17 +240,18 @@ frontend:
 
 metadata:
   created_by: "main_agent"
-  version: "1.0"
-  test_sequence: 1
+  version: "2.0"
+  test_sequence: 2
   run_ui: false
 
 test_plan:
   current_focus:
-    - "Pricing calculation accuracy"
+    - "Full order flow test"
+    - "Admin panel functionality"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
   - agent: "main"
-    message: "Tulpar Kurye MVP tamamlandı. Ücret hesaplama modülü, tüm sayfalar ve blog içerikleri hazır. Backend pricing logic test edilmeli."
+    message: "Admin paneli ve sipariş sistemi tamamlandı. Admin: Tulpar / 123321Ttk. WhatsApp: 905339298308"
