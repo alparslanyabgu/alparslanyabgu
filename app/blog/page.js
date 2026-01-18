@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Calendar, ArrowRight, Tag } from 'lucide-react';
+import { Calendar, ArrowRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 
 export const metadata = {
@@ -7,7 +7,6 @@ export const metadata = {
   description: 'Tulpar Kurye blog. İstanbul kurye hizmetleri, teslimat ipuçları, sektör haberleri ve daha fazlası.',
 };
 
-// Blog yazıları - statik
 const blogPosts = [
   {
     slug: 'istanbul-kurye-hizmeti-secerken-dikkat-edilmesi-gerekenler',
@@ -91,43 +90,29 @@ const blogPosts = [
   }
 ];
 
-const categories = ['Tümü', 'Rehber', 'Bilgi', 'Sektör', 'E-ticaret', 'Kurumsal', 'Güvenlik', 'Hizmetler'];
-
 export default function BlogPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-tulpar-night to-tulpar-surface py-20">
+    <div className="min-h-screen bg-tulpar-bg py-16">
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl lg:text-5xl font-bold text-tulpar-text mb-4">
+          <h1 className="text-[34px] lg:text-[44px] font-semibold text-tulpar-text mb-4">
             Blog
           </h1>
-          <p className="text-xl text-tulpar-muted max-w-2xl mx-auto">
+          <p className="text-tulpar-muted max-w-md mx-auto">
             Kurye sektörü, İstanbul teslimat ipuçları ve daha fazlası
           </p>
-        </div>
-
-        {/* Categories */}
-        <div className="flex flex-wrap justify-center gap-3 mb-12">
-          {categories.map((cat) => (
-            <span
-              key={cat}
-              className="px-4 py-2 rounded-full text-sm bg-tulpar-surface border border-tulpar-turquoise/20 text-tulpar-text hover:border-tulpar-turquoise/50 cursor-pointer transition-colors"
-            >
-              {cat}
-            </span>
-          ))}
         </div>
 
         {/* Blog Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
           {blogPosts.map((post) => (
             <Link key={post.slug} href={`/blog/${post.slug}`}>
-              <Card className="bg-tulpar-surface border-tulpar-turquoise/10 hover:border-tulpar-turquoise/30 transition-all h-full group">
+              <Card className="bg-white border-tulpar-border shadow-sm hover:shadow-md transition-shadow h-full">
                 <CardContent className="p-6">
                   {/* Category & Date */}
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-xs bg-tulpar-turquoise/20 text-tulpar-turquoise px-3 py-1 rounded-full">
+                    <span className="text-xs bg-tulpar-section text-tulpar-primary px-3 py-1 rounded-full font-medium">
                       {post.category}
                     </span>
                     <span className="text-xs text-tulpar-muted flex items-center gap-1">
@@ -137,7 +122,7 @@ export default function BlogPage() {
                   </div>
 
                   {/* Title */}
-                  <h2 className="text-lg font-semibold text-tulpar-text mb-3 group-hover:text-tulpar-turquoise transition-colors line-clamp-2">
+                  <h2 className="text-lg font-semibold text-tulpar-text mb-3 hover:text-tulpar-primary transition-colors line-clamp-2">
                     {post.title}
                   </h2>
 
@@ -147,9 +132,9 @@ export default function BlogPage() {
                   </p>
 
                   {/* Footer */}
-                  <div className="flex items-center justify-between pt-4 border-t border-tulpar-turquoise/10">
+                  <div className="flex items-center justify-between pt-4 border-t border-tulpar-border">
                     <span className="text-xs text-tulpar-muted">{post.readTime} okuma</span>
-                    <span className="text-tulpar-turquoise text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
+                    <span className="text-tulpar-primary text-sm flex items-center gap-1 font-medium">
                       Oku <ArrowRight className="w-4 h-4" />
                     </span>
                   </div>
