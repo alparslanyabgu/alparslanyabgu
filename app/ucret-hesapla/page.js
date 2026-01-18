@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Calculator, Info, CheckCircle, AlertCircle } from 'lucide-react';
+import { Calculator, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -64,39 +64,39 @@ export default function UcretHesaplaPage() {
   }) : '';
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-tulpar-night to-tulpar-surface py-12">
+    <div className="min-h-screen bg-tulpar-bg py-12">
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-tulpar-turquoise to-tulpar-gold mb-4">
-            <Calculator className="w-8 h-8 text-tulpar-night" />
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-tulpar-primary mb-4">
+            <Calculator className="w-7 h-7 text-white" />
           </div>
-          <h1 className="text-3xl lg:text-4xl font-bold text-tulpar-text mb-3">
+          <h1 className="text-[34px] lg:text-[44px] font-semibold text-tulpar-text mb-3">
             Ücret Hesapla
           </h1>
-          <p className="text-tulpar-muted text-lg max-w-xl mx-auto">
+          <p className="text-tulpar-muted max-w-md mx-auto">
             Alım ve teslim bölgelerini seçin, anında şeffaf fiyat öğrenin.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
           {/* Form */}
-          <Card className="bg-tulpar-surface border-tulpar-turquoise/20">
-            <CardHeader>
-              <CardTitle className="text-tulpar-text">Teslimat Bilgileri</CardTitle>
+          <Card className="bg-white border-tulpar-border shadow-sm">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-tulpar-text text-lg">Teslimat Bilgileri</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Bölgeler */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-tulpar-text">Alım Bölgesi</Label>
+                  <Label className="text-tulpar-text text-sm">Alım Bölgesi</Label>
                   <Select value={pickupZone} onValueChange={setPickupZone}>
-                    <SelectTrigger className="bg-tulpar-night border-tulpar-turquoise/30 text-tulpar-text">
+                    <SelectTrigger className="bg-white border-tulpar-border text-tulpar-text">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-tulpar-surface border-tulpar-turquoise/30">
+                    <SelectContent className="bg-white border-tulpar-border">
                       {zones.map(zone => (
-                        <SelectItem key={zone} value={zone.toString()} className="text-tulpar-text hover:bg-tulpar-turquoise/20">
+                        <SelectItem key={zone} value={zone.toString()} className="text-tulpar-text">
                           Bölge {zone}
                         </SelectItem>
                       ))}
@@ -104,14 +104,14 @@ export default function UcretHesaplaPage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-tulpar-text">Teslim Bölgesi</Label>
+                  <Label className="text-tulpar-text text-sm">Teslim Bölgesi</Label>
                   <Select value={dropZone} onValueChange={setDropZone}>
-                    <SelectTrigger className="bg-tulpar-night border-tulpar-turquoise/30 text-tulpar-text">
+                    <SelectTrigger className="bg-white border-tulpar-border text-tulpar-text">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-tulpar-surface border-tulpar-turquoise/30">
+                    <SelectContent className="bg-white border-tulpar-border">
                       {zones.map(zone => (
-                        <SelectItem key={zone} value={zone.toString()} className="text-tulpar-text hover:bg-tulpar-turquoise/20">
+                        <SelectItem key={zone} value={zone.toString()} className="text-tulpar-text">
                           Bölge {zone}
                         </SelectItem>
                       ))}
@@ -122,17 +122,17 @@ export default function UcretHesaplaPage() {
 
               {/* Tarife */}
               <div className="space-y-3">
-                <Label className="text-tulpar-text">Tarife</Label>
+                <Label className="text-tulpar-text text-sm">Tarife</Label>
                 <RadioGroup value={tariff} onValueChange={setTariff} className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center space-x-2 bg-tulpar-night p-4 rounded-lg border border-tulpar-turquoise/20 cursor-pointer hover:border-tulpar-turquoise/50 transition-colors">
-                    <RadioGroupItem value="pesin_kdv_dahil" id="pesin" className="border-tulpar-turquoise text-tulpar-turquoise" />
-                    <Label htmlFor="pesin" className="text-tulpar-text cursor-pointer">
+                  <div className="flex items-center space-x-2 bg-tulpar-section p-4 rounded-lg border border-tulpar-border cursor-pointer hover:border-tulpar-primary transition-colors">
+                    <RadioGroupItem value="pesin_kdv_dahil" id="pesin" className="border-tulpar-border text-tulpar-primary" />
+                    <Label htmlFor="pesin" className="text-tulpar-text cursor-pointer text-sm">
                       Peşin <span className="text-tulpar-muted text-xs">(KDV Dahil)</span>
                     </Label>
                   </div>
-                  <div className="flex items-center space-x-2 bg-tulpar-night p-4 rounded-lg border border-tulpar-turquoise/20 cursor-pointer hover:border-tulpar-turquoise/50 transition-colors">
-                    <RadioGroupItem value="abone_kdv_haric" id="abone" className="border-tulpar-turquoise text-tulpar-turquoise" />
-                    <Label htmlFor="abone" className="text-tulpar-text cursor-pointer">
+                  <div className="flex items-center space-x-2 bg-tulpar-section p-4 rounded-lg border border-tulpar-border cursor-pointer hover:border-tulpar-primary transition-colors">
+                    <RadioGroupItem value="abone_kdv_haric" id="abone" className="border-tulpar-border text-tulpar-primary" />
+                    <Label htmlFor="abone" className="text-tulpar-text cursor-pointer text-sm">
                       Abone <span className="text-tulpar-muted text-xs">(KDV Hariç)</span>
                     </Label>
                   </div>
@@ -142,78 +142,78 @@ export default function UcretHesaplaPage() {
               {/* Ağırlık ve Hacim */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-tulpar-text">Ağırlık (kg)</Label>
+                  <Label className="text-tulpar-text text-sm">Ağırlık (kg)</Label>
                   <Input
                     type="number"
                     min="0"
                     step="0.1"
                     value={weight}
                     onChange={(e) => setWeight(e.target.value)}
-                    className="bg-tulpar-night border-tulpar-turquoise/30 text-tulpar-text"
+                    className="bg-white border-tulpar-border text-tulpar-text focus:ring-tulpar-primary focus:border-tulpar-primary"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-tulpar-text">Hacim (dm³)</Label>
+                  <Label className="text-tulpar-text text-sm">Hacim (dm³)</Label>
                   <Input
                     type="number"
                     min="0"
                     step="0.1"
                     value={volume}
                     onChange={(e) => setVolume(e.target.value)}
-                    className="bg-tulpar-night border-tulpar-turquoise/30 text-tulpar-text"
+                    className="bg-white border-tulpar-border text-tulpar-text focus:ring-tulpar-primary focus:border-tulpar-primary"
                   />
                 </div>
               </div>
 
               {/* Bekleme */}
               <div className="space-y-2">
-                <Label className="text-tulpar-text">Bekleme Süresi (dakika)</Label>
+                <Label className="text-tulpar-text text-sm">Bekleme Süresi (dakika)</Label>
                 <Input
                   type="number"
                   min="0"
                   step="1"
                   value={waitMinutes}
                   onChange={(e) => setWaitMinutes(e.target.value)}
-                  className="bg-tulpar-night border-tulpar-turquoise/30 text-tulpar-text"
+                  className="bg-white border-tulpar-border text-tulpar-text focus:ring-tulpar-primary focus:border-tulpar-primary"
                 />
                 <p className="text-xs text-tulpar-muted">İlk 5 dakika ücretsiz</p>
               </div>
 
               {/* Zaman Dilimi */}
               <div className="space-y-3">
-                <Label className="text-tulpar-text">Zaman Dilimi</Label>
+                <Label className="text-tulpar-text text-sm">Zaman Dilimi</Label>
                 <RadioGroup value={timeSlot} onValueChange={setTimeSlot} className="space-y-2">
-                  <div className="flex items-center space-x-3 bg-tulpar-night p-3 rounded-lg border border-tulpar-turquoise/20">
-                    <RadioGroupItem value="daytime" id="daytime" className="border-tulpar-turquoise text-tulpar-turquoise" />
-                    <Label htmlFor="daytime" className="text-tulpar-text cursor-pointer flex-1">
-                      Gündüz <span className="text-tulpar-muted text-sm">(Normal)</span>
+                  <div className="flex items-center space-x-3 bg-tulpar-section p-3 rounded-lg border border-tulpar-border">
+                    <RadioGroupItem value="daytime" id="daytime" className="border-tulpar-border text-tulpar-primary" />
+                    <Label htmlFor="daytime" className="text-tulpar-text cursor-pointer flex-1 text-sm">
+                      Gündüz <span className="text-tulpar-muted">(Normal)</span>
                     </Label>
                   </div>
-                  <div className="flex items-center space-x-3 bg-tulpar-night p-3 rounded-lg border border-tulpar-turquoise/20">
-                    <RadioGroupItem value="evening" id="evening" className="border-tulpar-turquoise text-tulpar-turquoise" />
-                    <Label htmlFor="evening" className="text-tulpar-text cursor-pointer flex-1">
-                      Akşam <span className="text-tulpar-muted text-sm">(18:00-21:00) - 2x</span>
+                  <div className="flex items-center space-x-3 bg-tulpar-section p-3 rounded-lg border border-tulpar-border">
+                    <RadioGroupItem value="evening" id="evening" className="border-tulpar-border text-tulpar-primary" />
+                    <Label htmlFor="evening" className="text-tulpar-text cursor-pointer flex-1 text-sm">
+                      Akşam <span className="text-tulpar-muted">(18:00-21:00) — 2x</span>
                     </Label>
                   </div>
-                  <div className="flex items-center space-x-3 bg-tulpar-night p-3 rounded-lg border border-tulpar-turquoise/20">
-                    <RadioGroupItem value="night" id="night" className="border-tulpar-turquoise text-tulpar-turquoise" />
-                    <Label htmlFor="night" className="text-tulpar-text cursor-pointer flex-1">
-                      Gece <span className="text-tulpar-muted text-sm">(21:00-24:00) - 3x</span>
+                  <div className="flex items-center space-x-3 bg-tulpar-section p-3 rounded-lg border border-tulpar-border">
+                    <RadioGroupItem value="night" id="night" className="border-tulpar-border text-tulpar-primary" />
+                    <Label htmlFor="night" className="text-tulpar-text cursor-pointer flex-1 text-sm">
+                      Gece <span className="text-tulpar-muted">(21:00-24:00) — 3x</span>
                     </Label>
                   </div>
                 </RadioGroup>
               </div>
 
               {/* Araç Kurye */}
-              <div className="flex items-center justify-between bg-tulpar-night p-4 rounded-lg border border-tulpar-turquoise/20">
+              <div className="flex items-center justify-between bg-tulpar-section p-4 rounded-lg border border-tulpar-border">
                 <div>
-                  <Label className="text-tulpar-text">Araç Kurye</Label>
+                  <Label className="text-tulpar-text text-sm">Araç Kurye</Label>
                   <p className="text-xs text-tulpar-muted">Büyük paketler için (6x çarpan)</p>
                 </div>
                 <Switch
                   checked={isCarCourier}
                   onCheckedChange={setIsCarCourier}
-                  className="data-[state=checked]:bg-tulpar-turquoise"
+                  className="data-[state=checked]:bg-tulpar-primary"
                 />
               </div>
             </CardContent>
@@ -221,45 +221,40 @@ export default function UcretHesaplaPage() {
 
           {/* Result */}
           <div className="space-y-6">
-            {error ? (
-              <Card className="bg-red-500/10 border-red-500/30">
-                <CardContent className="p-6 text-center">
-                  <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-                  <p className="text-red-400">{error}</p>
-                </CardContent>
-              </Card>
-            ) : result && (
+            {result && (
               <>
                 {/* Total Card */}
-                <Card className="bg-gradient-to-br from-tulpar-turquoise/20 to-tulpar-gold/20 border-tulpar-turquoise/30">
-                  <CardContent className="p-8 text-center">
-                    <p className="text-tulpar-muted mb-2">Toplam Tutar</p>
-                    <p className="text-5xl lg:text-6xl font-bold bg-gradient-to-r from-tulpar-turquoise to-tulpar-gold bg-clip-text text-transparent">
+                <Card className="bg-white border-tulpar-border shadow-sm">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-tulpar-muted text-sm font-normal">Hesap Özeti</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-4xl lg:text-5xl font-semibold text-tulpar-primary mb-1">
                       {result.total.toFixed(2)} ₺
                     </p>
-                    <p className="text-tulpar-muted text-sm mt-2">
+                    <p className="text-tulpar-muted text-sm">
                       {result.breakdown.kdvIncluded ? 'KDV Dahil' : 'KDV Hariç'}
                     </p>
                   </CardContent>
                 </Card>
 
                 {/* Breakdown */}
-                <Card className="bg-tulpar-surface border-tulpar-turquoise/20">
-                  <CardHeader>
-                    <CardTitle className="text-tulpar-text text-lg">Fiyat Detayı</CardTitle>
+                <Card className="bg-white border-tulpar-border shadow-sm">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-tulpar-text text-base">Fiyat Detayı</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-3">
                     {/* Base */}
-                    <div className="flex justify-between items-center py-2 border-b border-tulpar-turquoise/10">
-                      <span className="text-tulpar-muted">Taban Ücret</span>
+                    <div className="flex justify-between items-center py-2 border-b border-tulpar-border">
+                      <span className="text-tulpar-muted text-sm">Taban ücret</span>
                       <span className="text-tulpar-text font-medium">{result.breakdown.base.toFixed(2)} ₺</span>
                     </div>
 
                     {/* Extra Weight/Volume */}
                     {result.breakdown.extraWeightVolume.total > 0 && (
-                      <div className="flex justify-between items-center py-2 border-b border-tulpar-turquoise/10">
-                        <span className="text-tulpar-muted">
-                          Ekstra Kg/Dm³ ({result.breakdown.extraWeightVolume.units} x {result.breakdown.extraWeightVolume.unitPrice.toFixed(2)} ₺)
+                      <div className="flex justify-between items-center py-2 border-b border-tulpar-border">
+                        <span className="text-tulpar-muted text-sm">
+                          Ek kg/dm³ ({result.breakdown.extraWeightVolume.units} × {result.breakdown.extraWeightVolume.unitPrice.toFixed(2)} ₺)
                         </span>
                         <span className="text-tulpar-text font-medium">{result.breakdown.extraWeightVolume.total.toFixed(2)} ₺</span>
                       </div>
@@ -267,35 +262,35 @@ export default function UcretHesaplaPage() {
 
                     {/* Wait */}
                     {result.breakdown.wait.total > 0 && (
-                      <div className="flex justify-between items-center py-2 border-b border-tulpar-turquoise/10">
-                        <span className="text-tulpar-muted">
-                          Bekleme ({result.breakdown.wait.extraMinutes} dk x {result.breakdown.wait.minutePrice.toFixed(2)} ₺)
+                      <div className="flex justify-between items-center py-2 border-b border-tulpar-border">
+                        <span className="text-tulpar-muted text-sm">
+                          Bekleme ({result.breakdown.wait.extraMinutes} dk × {result.breakdown.wait.minutePrice.toFixed(2)} ₺)
                         </span>
                         <span className="text-tulpar-text font-medium">{result.breakdown.wait.total.toFixed(2)} ₺</span>
                       </div>
                     )}
 
                     {/* Subtotal */}
-                    <div className="flex justify-between items-center py-2 border-b border-tulpar-turquoise/10">
-                      <span className="text-tulpar-muted">Ara Toplam</span>
+                    <div className="flex justify-between items-center py-2 border-b border-tulpar-border">
+                      <span className="text-tulpar-muted text-sm">Ara toplam</span>
                       <span className="text-tulpar-text font-medium">{result.breakdown.subtotal.toFixed(2)} ₺</span>
                     </div>
 
                     {/* Multipliers */}
                     {(result.breakdown.timeMultiplier.value > 1 || result.breakdown.carMultiplier.isActive) && (
-                      <div className="space-y-2 py-2 border-b border-tulpar-turquoise/10">
+                      <div className="py-2 border-b border-tulpar-border space-y-2">
                         {result.breakdown.timeMultiplier.value > 1 && (
                           <div className="flex justify-between items-center">
-                            <span className="text-tulpar-gold">
-                              {result.breakdown.timeMultiplier.label} Çarpanı
+                            <span className="text-tulpar-muted text-sm">
+                              {result.breakdown.timeMultiplier.label} çarpanı
                             </span>
-                            <span className="text-tulpar-gold font-medium">x{result.breakdown.timeMultiplier.value}</span>
+                            <span className="text-tulpar-accent font-medium">×{result.breakdown.timeMultiplier.value}</span>
                           </div>
                         )}
                         {result.breakdown.carMultiplier.isActive && (
                           <div className="flex justify-between items-center">
-                            <span className="text-tulpar-gold">Araç Kurye Çarpanı</span>
-                            <span className="text-tulpar-gold font-medium">x{result.breakdown.carMultiplier.value}</span>
+                            <span className="text-tulpar-muted text-sm">Araç kurye çarpanı</span>
+                            <span className="text-tulpar-accent font-medium">×{result.breakdown.carMultiplier.value}</span>
                           </div>
                         )}
                       </div>
@@ -304,19 +299,19 @@ export default function UcretHesaplaPage() {
                     {/* Final Total */}
                     <div className="flex justify-between items-center pt-2">
                       <span className="text-tulpar-text font-semibold">Toplam</span>
-                      <span className="text-2xl font-bold text-tulpar-turquoise">{result.total.toFixed(2)} ₺</span>
+                      <span className="text-2xl font-semibold text-tulpar-primary">{result.total.toFixed(2)} ₺</span>
                     </div>
                   </CardContent>
                 </Card>
 
                 {/* WhatsApp CTA */}
-                <WhatsAppButton message={whatsappMessage} className="w-full py-6 text-lg">
+                <WhatsAppButton message={whatsappMessage} className="w-full py-6 text-base">
                   Bu Fiyatla Sipariş Ver
                 </WhatsAppButton>
 
                 {/* Info */}
-                <div className="flex items-start gap-3 p-4 bg-tulpar-night/50 rounded-lg border border-tulpar-turquoise/10">
-                  <Info className="w-5 h-5 text-tulpar-turquoise mt-0.5" />
+                <div className="flex items-start gap-3 p-4 bg-tulpar-section rounded-lg border border-tulpar-border">
+                  <Info className="w-5 h-5 text-tulpar-primary mt-0.5 flex-shrink-0" />
                   <p className="text-tulpar-muted text-sm">
                     Fiyatlar tahminidir. Kesin fiyat, sipariş detaylarına göre belirlenir. 
                     Taban ücrete 1 kg veya 1 dm³'e kadar dahildir.
